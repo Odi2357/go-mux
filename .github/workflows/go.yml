@@ -9,6 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+          APP_DB_USERNAME: postgres
+          APP_DB_PASSWORD: postgres
+          APP_DB_NAME: postgres
     steps:
       - uses: actions/checkout@v3
 
