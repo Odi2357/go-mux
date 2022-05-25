@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Start containers
-      run: docker-compose -f "docker-postgresql/docker-compose.yml" up -d
+      run: docker-compose -f "docker-postgresql/docker-compose.yaml" up -d
 
     - name: Set up Go
       uses: actions/setup-go@v3
