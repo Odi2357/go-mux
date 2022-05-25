@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Start containers
-      run: docker-compose -f "./docker-compose.yml" up -d
+      run: docker-compose -f "docker-postgresql/docker-compose.yml" up -d
     
     - uses: actions/checkout@v3
 
