@@ -188,3 +188,53 @@ func TestDeleteProduct(t *testing.T) {
 	response = executeRequest(req)
 	checkResponseCode(t, http.StatusNotFound, response.Code)
 }
+
+func TestSearchProducts(t *testing.T) {
+	clearTable()
+	addProducts(5)
+
+	req, _ := http.NewRequest("GET", "/product/search/Product", nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var products []map[string]interface{}
+	json.Unmarshal(response.Body.Bytes(), &products)
+	checkProductsLength(t, 5, len(products))
+
+	req, _ = http.NewRequest("GET", "/product/search/", nil)
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusNotFound, response.Code)
+
+	req, _ = http.NewRequest("GET", "/product/search/product 1", nil)
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	json.Unmarshal(response.Body.Bytes(), &products)
+	checkProductsLength(t, 1, len(products))
+}
+
+func TestGetProductsByPriceRange(t *testing.T) {
+	clearTable()
+	addProducts(5)
+
+	req, _ := http.NewRequest("GET", "/product/price?start=0&end=100", nil)
+	response := executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	var products []map[string]interface{}
+	json.Unmarshal(response.Body.Bytes(), &products)
+	checkProductsLength(t, 5, len(products))
+
+	req, _ = http.NewRequest("GET", "/product/price?start=0&end=10", nil)
+	response = executeRequest(req)
+	checkResponseCode(t, http.StatusOK, response.Code)
+
+	json.Unmarshal(response.Body.Bytes(), &products)
+	checkProductsLength(t, 1, len(products))
+}
+
+func checkProductsLength(t *testing.T, expected, actual int) {
+	if expected != actual {
+		t.Errorf("Expected number of products %d. Got %d\n", expected, actual)
+	}
+}

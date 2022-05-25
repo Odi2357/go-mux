@@ -34,7 +34,7 @@ func (a *App) Initialize(user, password, dbname string) {
 }
 
 func (a *App) Run(addr string) {
-	log.Fatal(http.ListenAndServe(":8010", a.Router))
+	log.Fatal(http.ListenAndServe(addr, a.Router))
 }
 
 func (a *App) getProduct(w http.ResponseWriter, r *http.Request) {
@@ -150,10 +150,45 @@ func (a *App) deleteProduct(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
+func (a *App) searchProducts(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	searchTerm := vars["searchTerm"]
+
+	products, err := searchProducts(a.DB, searchTerm)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, products)
+}
+
+func (a *App) getProductsByPriceRange(w http.ResponseWriter, r *http.Request) {
+	start, _ := strconv.Atoi(r.FormValue("start"))
+	end, _ := strconv.Atoi(r.FormValue("end"))
+
+	if end < 0 {
+		end = 1
+	}
+	if start < 0 {
+		start = 0
+	}
+
+	products, err := getProductsByPriceRange(a.DB, start, end)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, products)
+}
+
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/products", a.getProducts).Methods("GET")
 	a.Router.HandleFunc("/product", a.createProduct).Methods("POST")
 	a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")
 	a.Router.HandleFunc("/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
 	a.Router.HandleFunc("/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
+	a.Router.HandleFunc("/product/search/{searchTerm}", a.searchProducts).Methods("GET")
+	a.Router.HandleFunc("/product/price", a.getProductsByPriceRange).Methods("GET")
 }
